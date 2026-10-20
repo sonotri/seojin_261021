@@ -11,3 +11,11 @@
 .method-list li::marker{color:#8b6844;font-weight:600}
 .recipe-note{border-top:1px solid #b7986d7d;padding-top:15px;margin-top:25px;text-align:left;color:#806344;font-size:11px;line-height:1.9;word-break:keep-all}
 @media(max-width:700px){.atlas.selected{transform:translateY(-23%) scale(.92)}.recipe{width:90%;max-width:none}.recipe-content{padding:37px 27px}}
+
+/* Keep the six destinations visible on touch screens and keyboards. */
+.islands span{top:50%;bottom:auto;left:50%;width:34px;height:34px;display:grid;place-items:center;transform:translate(-50%,-50%);padding:0;border-radius:50%;border:1px solid #f1d39b;background:#382818e8;color:#fff2d0;box-shadow:0 2px 9px #24150ab8;pointer-events:none}
+.atlas.alive .islands span{opacity:1}
+.islands button{touch-action:manipulation}
+.islands button:hover span,.islands button:focus-visible span{background:#7b4a28;box-shadow:0 0 0 5px #f3d59d55,0 2px 9px #24150ab8}
+@media(max-width:700px){.islands span{width:28px;height:28px;font-size:11px}footer{gap:12px}footer span{line-height:1.5}footer button{flex:none}}
+@media(max-height:600px){.intro{overflow-y:auto}.frame{position:relative;inset:auto;min-height:calc(100vh - 26px);margin:13px}.intro h1{line-height:1.35}.description{margin:14px 0 20px}}

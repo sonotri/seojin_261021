@@ -27,17 +27,43 @@ const recipes = [
     note:'둥근 버터 정상에서 메이플 시럽이 흘러내리는, 달콤하고 고소한 산맥.' }
 ];
 const $=id=>document.getElementById(id);
-const intro=$('intro'),stage=$('rollStage'),atlas=$('atlas'),recipe=$('recipe'),hint=$('hint');
+const intro=$('intro'),table=$('table'),stage=$('rollStage'),atlas=$('atlas'),recipe=$('recipe'),hint=$('hint');
+const islandButtons=[...document.querySelectorAll('.islands button')];
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let timers=[];
+let lastIslandButton=null;
 const later=(fn,ms)=>{const id=setTimeout(fn,ms);timers.push(id)};
 function resetTimers(){timers.forEach(clearTimeout);timers=[]}
-$('begin').addEventListener('click',()=>{intro.classList.add('hidden');stage.classList.remove('hide');atlas.classList.remove('open','unfurled','alive','selected');atlas.setAttribute('aria-hidden','true');closeRecipe()});
-$('unroll').addEventListener('click',()=>{stage.classList.add('hide');atlas.classList.add('open');atlas.setAttribute('aria-hidden','false');later(()=>atlas.classList.add('unfurled'),120);later(()=>{atlas.classList.add('alive');hint.classList.add('show');later(()=>hint.classList.remove('show'),3200)},3300)});
-function closeRecipe(){recipe.classList.remove('open');recipe.setAttribute('aria-hidden','true');atlas.classList.remove('selected')}
-$('close').addEventListener('click',closeRecipe);
-document.querySelectorAll('.islands button').forEach(button=>button.addEventListener('click',()=>{
+$('begin').addEventListener('click',()=>{
+ resetTimers();closeRecipe();
+ intro.classList.add('hidden');intro.setAttribute('aria-hidden','true');intro.inert=true;
+ table.setAttribute('aria-hidden','false');table.inert=false;
+ stage.classList.remove('hide');stage.inert=false;
+ atlas.classList.remove('open','unfurled','alive','selected');atlas.setAttribute('aria-hidden','true');atlas.inert=true;
+ $('unroll').focus();
+});
+$('unroll').addEventListener('click',()=>{
+ stage.classList.add('hide');stage.inert=true;
+ atlas.classList.add('open');atlas.setAttribute('aria-hidden','false');atlas.inert=false;
+ later(()=>atlas.classList.add('unfurled'),reduceMotion.matches?0:120);
+ later(()=>{
+  atlas.classList.add('alive');hint.classList.add('show');
+  islandButtons[0].focus();
+  later(()=>hint.classList.remove('show'),3200);
+ },reduceMotion.matches?80:2200);
+});
+function closeRecipe(focusTrigger=false){
+ const wasOpen=recipe.classList.contains('open');
+ recipe.classList.remove('open');recipe.setAttribute('aria-hidden','true');recipe.inert=true;
+ atlas.classList.remove('selected');
+ if(focusTrigger&&wasOpen&&lastIslandButton)lastIslandButton.focus();
+}
+$('close').addEventListener('click',()=>closeRecipe(true));
+islandButtons.forEach(button=>button.addEventListener('click',()=>{
  if(!atlas.classList.contains('alive'))return;
  const index=Number(button.dataset.id),item=recipes[index];
+ if(!item)return;
+ lastIslandButton=button;
  $('number').textContent=`ISLAND NO. ${String(index+1).padStart(2,'0')}`;
  $('title').textContent=item.title;$('subtitle').textContent=item.subtitle;
  const ingredients=$('ingredients'),method=$('method');
@@ -46,7 +72,15 @@ document.querySelectorAll('.islands button').forEach(button=>button.addEventList
  item.method.forEach(value=>{const li=document.createElement('li');li.textContent=value;method.appendChild(li)});
  $('recipe-note').textContent=item.note;
  document.querySelector('.recipe-content').scrollTop=0;
- atlas.classList.add('selected');recipe.classList.add('open');recipe.setAttribute('aria-hidden','false');hint.classList.remove('show');
+ atlas.classList.add('selected');recipe.classList.add('open');recipe.setAttribute('aria-hidden','false');recipe.inert=false;hint.classList.remove('show');
+ $('close').focus();
 }));
-$('home').addEventListener('click',()=>{resetTimers();closeRecipe();intro.classList.remove('hidden');stage.classList.remove('hide');atlas.classList.remove('open','unfurled','alive');atlas.setAttribute('aria-hidden','true');hint.classList.remove('show')});
-document.addEventListener('keydown',event=>{if(event.key==='Escape')closeRecipe()});
+$('home').addEventListener('click',()=>{
+ resetTimers();closeRecipe();
+ intro.classList.remove('hidden');intro.setAttribute('aria-hidden','false');intro.inert=false;
+ table.setAttribute('aria-hidden','true');table.inert=true;
+ stage.classList.remove('hide');stage.inert=true;
+ atlas.classList.remove('open','unfurled','alive');atlas.setAttribute('aria-hidden','true');atlas.inert=true;
+ hint.classList.remove('show');$('begin').focus();
+});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&recipe.classList.contains('open'))closeRecipe(true)});
